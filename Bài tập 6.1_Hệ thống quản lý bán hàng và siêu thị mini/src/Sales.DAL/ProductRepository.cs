@@ -1,0 +1,7 @@
+using Microsoft.Data.SqlClient; using Sales.DTO;
+namespace Sales.DAL;
+public sealed class ProductRepository {
+ public async Task<List<Product>> GetAllAsync(string keyword="") { var list=new List<Product>(); await using var c=Db.CreateConnection(); await c.OpenAsync(); await using var cmd=new SqlCommand("SELECT MaSP,TenSP,GiaBan,SoLuongTon FROM SanPham WHERE (@kw=N'' OR TenSP LIKE @like OR MaSP LIKE @like) ORDER BY TenSP",c); cmd.Parameters.AddWithValue("@kw",keyword); cmd.Parameters.AddWithValue("@like",$"%{keyword}%"); await using var r=await cmd.ExecuteReaderAsync(); while(await r.ReadAsync()) list.Add(new Product{MaSP=r.GetString(0),TenSP=r.GetString(1),GiaBan=r.GetDecimal(2),SoLuongTon=r.GetInt32(3)}); return list; }
+ public async Task SaveAsync(Product p, bool isNew) { await using var c=Db.CreateConnection(); await c.OpenAsync(); string sql=isNew?"INSERT INTO SanPham(MaSP,TenSP,GiaBan,SoLuongTon) VALUES(@id,@name,@price,@stock)":"UPDATE SanPham SET TenSP=@name,GiaBan=@price,SoLuongTon=@stock WHERE MaSP=@id"; await using var cmd=new SqlCommand(sql,c); cmd.Parameters.AddWithValue("@id",p.MaSP); cmd.Parameters.AddWithValue("@name",p.TenSP); cmd.Parameters.AddWithValue("@price",p.GiaBan); cmd.Parameters.AddWithValue("@stock",p.SoLuongTon); await cmd.ExecuteNonQueryAsync(); }
+ public async Task DeleteAsync(string id) { await using var c=Db.CreateConnection(); await c.OpenAsync(); await using var cmd=new SqlCommand("DELETE FROM SanPham WHERE MaSP=@id",c); cmd.Parameters.AddWithValue("@id",id); await cmd.ExecuteNonQueryAsync(); }
+}

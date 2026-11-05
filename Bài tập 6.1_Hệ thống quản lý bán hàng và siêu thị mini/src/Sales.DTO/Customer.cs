@@ -1,0 +1,2 @@
+namespace Sales.DTO;
+public sealed class Customer { public int MaKH {get;set;} public string TenKH {get;set;}=""; public string? DienThoai {get;set;} public int DiemTichLuy {get;set;} }

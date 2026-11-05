@@ -1,0 +1,7 @@
+using Microsoft.Data.SqlClient; using Sales.DTO;
+namespace Sales.DAL;
+public sealed class EmployeeRepository {
+ public async Task<List<Employee>> GetAllAsync(){var a=new List<Employee>();await using var c=Db.CreateConnection();await c.OpenAsync();await using var cmd=new SqlCommand("SELECT MaNV,TenNV,SoDienThoai,ChucVu FROM NhanVien ORDER BY TenNV",c);await using var r=await cmd.ExecuteReaderAsync();while(await r.ReadAsync())a.Add(new Employee{MaNV=r.GetInt32(0),TenNV=r.GetString(1),SoDienThoai=r.IsDBNull(2)?null:r.GetString(2),ChucVu=r.IsDBNull(3)?null:r.GetString(3)});return a;}
+ public async Task SaveAsync(Employee x,bool isNew){await using var c=Db.CreateConnection();await c.OpenAsync();var sql=isNew?"INSERT INTO NhanVien(TenNV,SoDienThoai,ChucVu) VALUES(@n,@p,@r)":"UPDATE NhanVien SET TenNV=@n,SoDienThoai=@p,ChucVu=@r WHERE MaNV=@id";await using var cmd=new SqlCommand(sql,c);cmd.Parameters.AddWithValue("@n",x.TenNV);cmd.Parameters.AddWithValue("@p",(object?)x.SoDienThoai??DBNull.Value);cmd.Parameters.AddWithValue("@r",(object?)x.ChucVu??DBNull.Value);if(!isNew)cmd.Parameters.AddWithValue("@id",x.MaNV);await cmd.ExecuteNonQueryAsync();}
+ public async Task DeleteAsync(int id){await using var c=Db.CreateConnection();await c.OpenAsync();await using var cmd=new SqlCommand("DELETE FROM NhanVien WHERE MaNV=@id",c);cmd.Parameters.AddWithValue("@id",id);await cmd.ExecuteNonQueryAsync();}
+}
